@@ -14,3 +14,5 @@ absl-py
 h5py
 lm_eval
 wandb
+fastapi
+uvicorn[standard]
