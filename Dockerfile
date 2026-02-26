@@ -2,16 +2,23 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install deps first (better caching)
+# System deps needed for many Python packages to build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    g++ \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip tooling (helps with pyproject builds)
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the code
 COPY . .
 
-# Cloud Run listens on $PORT
 ENV PORT=8080
 EXPOSE 8080
-
-# Start your app (change if your project uses something else)
 CMD ["python", "main.py"]
