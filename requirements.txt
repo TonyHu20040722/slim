@@ -8,6 +8,5 @@ tensorboardX
 absl-py
 h5py
 lm_eval
-flash-attn
 triton
 wandb
