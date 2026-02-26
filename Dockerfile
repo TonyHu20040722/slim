@@ -1,21 +1,24 @@
-FROM python:3.11-slim
+FROM python:3.10-slim
 
 WORKDIR /app
 
-# System deps needed for many Python packages to build
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    gcc \
-    g++ \
-    git \
-    curl \
+    build-essential gcc g++ git curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip tooling (helps with pyproject builds)
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+
+# Install torch first so flash-attn's build can import it
+RUN pip install --no-cache-dir torch
+
+# Install everything except flash-attn
+RUN grep -v "^flash-attn" requirements.txt > /tmp/req.txt && \
+    pip install --no-cache-dir -r /tmp/req.txt
+
+# Try flash-attn last (often fails on CPU-only)
+RUN pip install --no-cache-dir flash-attn || true
 
 COPY . .
 
